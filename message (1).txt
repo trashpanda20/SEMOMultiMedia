@@ -1,0 +1,215 @@
+var canvasWidth = 1300;
+var canvasHeight = 600;
+var backgroundLayer = document.getElementById("layer1");
+var playerLayer = document.getElementById("layer2");
+var enemyLayer = document.getElementById("layer3");
+var canvases = document.getElementsByTagName('canvas');
+var fallSpeed = 0;
+var interval = setInterval(updateCanvas, 20);
+
+var tsH = document.getElementById("testHeading");
+var player;
+var playerYPos = 200;
+var playerIsJump = false;
+var jumpSpeed = 0;
+var onGround = false;
+var spawned = false;
+var singleEnemy;
+var enemies = [];
+
+function startGame(){
+    //Precondition:  Character is choosen and user is authorized to play
+    //Postcondition:  Game related objects are created and displayed on screen
+    //Purpose: function to carry out necessary task to transition from menu to game ready state
+    for(var i = 0; i < canvases.length; i++){
+        var ctx = canvases[i].getContext('2d');
+        ctx.canvas.width = canvasWidth;
+        ctx.canvas.height = canvasHeight;  
+        
+    }
+    
+
+    player = new createPlayer(30, 30, 10);
+}
+
+function updateCanvas(){
+    //Precondition: Valid canvas with game start conditions met
+    //Postcondition: canvas updated and redrawn with inputs processed
+    //Purpose: To redraw the game canvas and update it based on user inputs or game physics
+    //var ctxB = backgroundLayer.getContext("2d");
+    
+    for(var i = 1; i < canvases.length; i++){
+        var ctx = canvases[i].getContext('2d');
+        ctx.clearRect(0,0, canvasWidth, canvasHeight);
+        
+    }
+    if(spawned == false){
+            spawned = true;
+            //spawnEnemies();
+            singleEnemy = new createEnemy(30, 30, 100, 100);
+    }
+
+    player.makeFall();
+    player.makeJump();
+    player.draw();
+
+
+    
+    if(spawned == true){
+        singleEnemy.move();
+        singleEnemy.draw();
+    }
+    
+
+    /*
+    if(enemies != null){
+       // enemies.forEach(element => {element.move});
+       for(let index = 0; index < enemies.length; index++){
+            var element = enemies[length];
+            //element.move();
+            element.draw();
+       }
+    }
+    */
+    
+    for(var i = 1; i < canvases.length; i++){
+        var ctx = canvases[i].getContext('2d');
+        ctx.draw();
+        
+    }
+    
+}
+
+function changeTxt(){
+    //Precondition: set html element exist
+    //Postcondition: text of chosen element is changed
+    //Purpose: to change the text of a header for testing purposes
+    tsH.innerText= "test Confirmed";
+}
+
+
+//--------------------------- enemy section -----------------------\\
+//Purpose: This section exist to house all code involving enemies.
+function createEnemy(width, height, x, y){
+    //Precondition: valid enemy creation parameters
+    //Postcondition: enemy is created at chosen point with chosen parameters
+    //Purpose: to create an enemey with the chosen parameters
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y;
+    this.draw = function(){
+        changeTxt();  
+        ctx = enemyLayer.getContext("2d");
+        ctx.fillStyle = "red";
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        
+    }
+    this.move = function(){
+        this.x = this.x + -1;
+        this.remove();
+    }
+    this.remove = function(){
+        if(this.x < -50){
+            
+        }
+    }
+}
+function spawnEnemies(){
+    //Precondition:
+    //Postcondition:
+    //Purpose:
+
+    // singleEnemy = createEnemy(30, 30, 300, 400);
+    //enemies.push(enemy);
+        
+}
+//--------------------------- obsticle section ---------------------\\
+//Purpose: This sectoin exist to house all code involving obsticles
+
+
+
+//--------------------------- data section -------------------------\\
+//Purpose: This section exist to house all code containing data manipulation
+
+
+
+//--------------------------- player section -----------------------\\
+// Purpose: This section exist to house all code containing player interactoins. 
+function createPlayer(width, height, x){
+    //Precondition:
+    //Postcondition:
+    //Purpose:
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = playerYPos;
+    this.draw = function(){
+        ctx = playerLayer.getContext("2d");
+        ctx.fillStyle = "green";
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+    this.makeFall = function(){
+        //Precondition:
+        //Postcondition:
+        //Purpose:
+        if(!playerIsJump){
+            this.y += fallSpeed;
+            fallSpeed += .1;
+            this.stopPlayer();
+        }
+    }
+    this.stopPlayer = function(){
+        //Precondition:
+        //Postcondition:
+        //Purpose:
+        var ground = canvasHeight - this.height;
+        if(this.y > ground ){       
+            if( fallSpeed > 0){
+                fallSpeed = fallSpeed * -.5;
+            } 
+            else if(this.y+.1 > ground){
+                this.y = ground;
+                onGround = true;
+                fallSpeed = 0;
+            }
+            
+        }
+    }
+    this.makeJump = function(){
+        //Precondition:
+        //Postcondition:
+        //Purpose:
+        if(playerIsJump){
+            this.y -= jumpSpeed;
+            jumpSpeed += .1; 
+        }
+    }
+}
+function resetJump(){
+    //Precondition:
+    //Postcondition:
+    //Purpose:
+    if(jumpSpeed > 0){
+        jumpSpeed -= .4;
+        setTimeout(resetJump, 20);
+    } else {
+        jumpSpeed = 0;
+        playerIsJump = false;
+    }
+
+}
+
+//--------------------------- Event Listeners -----------------------\\
+//Purpose: This section contains all event listners
+document.addEventListener('keydown', (e)=>{
+    if(e.code === "Space" && onGround == true){       
+        playerIsJump = true;
+        onGround = false;      
+    }
+})
+document.addEventListener('keyup', (e)=> {
+    if(e.code ==="Space" && playerIsJump){
+        setTimeout(resetJump, 300);
+    }
+})
